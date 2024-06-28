@@ -1,19 +1,17 @@
-from langchain_community.llms import Ollama
-from git import Repo
 import time
+from pathlib import Path
 from typing import Any
-
+from git import Repo
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain_community.document_loaders.generic import GenericLoader
-from langchain_community.document_loaders.parsers import LanguageParser
-from langchain_text_splitters import Language
-from langchain_community.vectorstores.chroma import Chroma
-from langchain_community.embeddings import OllamaEmbeddings
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_community.document_loaders.generic import GenericLoader
+from langchain_community.document_loaders.parsers import LanguageParser
+from langchain_community.embeddings import OllamaEmbeddings
+from langchain_community.llms import Ollama
+from langchain_community.vectorstores.chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from pathlib import Path
+from langchain_text_splitters import Language, RecursiveCharacterTextSplitter
 
 
 class LogHandler(BaseCallbackHandler):
@@ -25,8 +23,11 @@ class LogHandler(BaseCallbackHandler):
         parent_run_id,
         **kwargs: Any,
     ):
-        print("Retrieved {} documents".format(len(documents)))
-        print("First document {}".format(documents[0]))
+        if documents:
+            print("Retrieved {} documents".format(len(documents)))
+            print("First document {}".format(documents[0]))
+        else:
+            print("No documents retrieved")
 
     def on_llm_start(
         self,
@@ -46,8 +47,6 @@ class LogHandler(BaseCallbackHandler):
 handler = LogHandler()
 config = {"callbacks": [handler]}
 
-print("Starting! Waiting 5 seconds for the ollama container to be ready")
-time.sleep(5)
 print("Let's load the ollama container.")
 MODEL_NAME_LLM = "llama3"
 MODEL_NAME_RETRIEVER = "all-minilm"
